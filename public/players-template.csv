@@ -1,0 +1,4 @@
+id,name,position,teamId,age,goals,assists,appearances,minutes_played,pass_accuracy,tackles_per_game,season,source,updatedAt,demo
+example_mid_a,Demo Midfielder A,Midfielder,barca,22,5,8,20,1500,89,2.1,DEMO-2025/26,Synthetic teaching example,2026-09-30,true
+example_mid_b,Demo Midfielder B,Midfielder,madrid,24,8,4,22,1750,85,2.8,DEMO-2025/26,Synthetic teaching example,2026-09-30,true
+example_mid_c,Demo Midfielder C,Midfielder,barca,20,3,10,18,1100,92,1.5,DEMO-2025/26,Synthetic teaching example,2026-09-30,true

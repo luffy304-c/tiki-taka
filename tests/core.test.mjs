@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseCSV,exportCSV} from '../lib/csv.mjs';
+import {validatePlayer,per90,rankPlayers,normalizePlayer} from '../lib/model.mjs';
+const teams=[{id:'club',name:'Club',league:'Test'}];
+const p={id:'one',name:'Name',position:'Midfielder',teamId:'club',season:'2025/26',source:'test',updatedAt:'2026-09-30'};
+test('CSV preserves comma, quotes, newline and BOM',()=>{const source=[{...p,name:'A, "B"\nC'}],cols=Object.keys(p);assert.deepEqual(parseCSV(exportCSV(source,cols)),source);});
+test('CSV rejects malformed quotes, duplicate headers, column counts',()=>{assert.throws(()=>parseCSV('id,id\na,b'));assert.throws(()=>parseCSV('"id'));assert.throws(()=>parseCSV(exportCSV([p],Object.keys(p))+'\na,b'));});
+test('missing data stays unknown, zero is valid and per90 requires minutes',()=>{const v=validatePlayer({...p,goals:'0',assists:''},teams);assert.equal(v.goals,0);assert.equal(v.assists,null);assert.equal(per90(v,'goals'),null);assert.equal(per90({...v,minutes_played:180},'goals'),0);assert.equal(per90({goals:2,minutes_played:180},'goals'),1);});
+test('validation rejects unknown teams, negative and fractional totals and invalid ratings',()=>{for(const bad of [{teamId:'x'},{goals:-1},{rating:11},{goals:1.5},{minutes_played:'abc'},{source:''},{id:'../x'}])assert.throws(()=>validatePlayer({...p,...bad},teams));});
+test('ranking responds to weights and excludes unknown fields',()=>{const a={id:'a',goals:10,assists:1,minutes_played:900},b={id:'b',goals:1,assists:10,minutes_played:900},missing={id:'c',goals:null,assists:50,minutes_played:900};assert.equal(rankPlayers([a,b,missing],{goals:100})[0].id,'a');assert.equal(rankPlayers([a,b],{assists:100})[0].id,'b');assert.equal(rankPlayers([a,b,missing],{goals:50,assists:50}).length,2);assert.equal(rankPlayers([a],{goals:1})[0].score,50);assert.deepEqual(rankPlayers([a,b],{goals:0}),[]);});
+test('normalization derives club name and league from shared catalogue',()=>{assert.equal(normalizePlayer({...p,team:'Old name'},teams).team,'Club');assert.equal(normalizePlayer(p,teams).league,'Test');});
